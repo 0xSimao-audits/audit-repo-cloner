@@ -20,7 +20,7 @@ A Python package to clone a repo and automatically prepare it for [Cyfrin](https
 ```bash
 git clone https://github.com/Cyfrin/audit-repo-cloner
 cd audit-repo-cloner
-python3 -m venv venv
+python3.11 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
@@ -58,16 +58,17 @@ python -m audit_repo_cloner.create_audit_repo --config-file config.json --github
 # using .env file for github token and org
 python -m audit_repo_cloner.create_audit_repo --config-file config.json
 # if config file is not specified, config.json is used by default
-python -m audit_repo_cloner.create_audit_repo
+python3.11 -m audit_repo_cloner.create_audit_repo
 ```
 
 ## Development
 
 1. Set up development environment:
 ```bash
-git clone https://github.com/Cyfrin/audit-repo-cloner
+git clone https://github.com/0xSimao-audits/audit-repo-cloner
 cd audit-repo-cloner
-python3 -m venv venv
+pyenv local 3.11.6
+python3.11 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```

@@ -16,7 +16,7 @@ assignees: ''
 
 **[Project]:** 
 
-**Cyfrin:**"""
+**0xSimao:**"""
 
 DEFAULT_LABELS = [
     "bug",

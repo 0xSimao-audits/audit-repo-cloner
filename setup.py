@@ -38,7 +38,7 @@ setup(
     install_requires=["certifi", "cffi", "charset-normalizer", "click", "cryptography", "Deprecated", "exceptiongroup", "gql", "idna", "packaging", "pyasn1", "pycparser", "PyGithub", "PyJWT", "PyNaCl", "python-dotenv", "PyYAML", "requests", "requests-toolbelt", "rsa", "tomli", "urllib3", "wrapt"],
     packages=[about["__title__"]],
     python_requires=">=3.7, <4",
-    url="https://github.com/Cyfrin/audit-repo-cloner",
+    url="https://github.com/0xSimao/audit-repo-cloner",
     long_description=readme,
     long_description_content_type="text/markdown",
     classifiers=[

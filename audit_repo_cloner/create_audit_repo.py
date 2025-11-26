@@ -25,9 +25,9 @@ log.getLogger("gql.transport.requests").setLevel(log.WARNING)
 # Globals are shit. We should refactor again in the future...
 REPORT_BRANCH_NAME = "report"
 MAIN_BRANCH_NAME = "main"
-SUBTREE_URL = "https://github.com/Cyfrin/report-generator-template.git"
+SUBTREE_URL = "https://github.com/0xSimao-audits/report-generator-template.git"
 SUBTREE_NAME = "report-generator-template"
-SUBTREE_PATH_PREFIX = "cyfrin-report"
+SUBTREE_PATH_PREFIX = "0xSimao-report"
 GITHUB_WORKFLOW_ACTION_NAME = "generate-report"
 CONFIG_FILE = "config.json"
 
@@ -193,8 +193,8 @@ The source code for all audit target repositories has been merged into this repo
         )
 
     # Configure git
-    subprocess.run(["git", "config", "user.name", "Cyfrin Bot"], cwd=repo_path, check=False)
-    subprocess.run(["git", "config", "user.email", "bot@cyfrin.io"], cwd=repo_path, check=False)
+    subprocess.run(["git", "config", "user.name", "0xSimao Bot"], cwd=repo_path, check=False)
+    subprocess.run(["git", "config", "user.email", "bot@0xsimao.io"], cwd=repo_path, check=False)
 
     # Add remote
     subprocess.run(["git", "remote", "add", "origin", f"https://{github_token}@github.com/{organization}/{target_repo_name}.git"], cwd=repo_path, check=False)
