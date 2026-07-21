@@ -1,6 +1,8 @@
 # Audit Repository Cloner
 
-A Python package to clone a repo and automatically prepare it for [Cyfrin](https://www.cyfrin.io/) audit report generation.
+> This is a fork of [Cyfrin/audit-repo-cloner](https://github.com/Cyfrin/audit-repo-cloner), adapted for 0xSimao audits.
+
+A Python package to clone a repo and automatically prepare it for 0xSimao audit report generation.
 
 ## Features
 
@@ -10,7 +12,7 @@ A Python package to clone a repo and automatically prepare it for [Cyfrin](https
 - Add source repositories as git subtrees
 - Create tags for each source repository
 - Create branches for auditors and final report
-- Add [report-generator-template](https://github.com/Cyfrin/report-generator-template)
+- Add [report-generator-template](https://github.com/0xSimao-audits/report-generator-template)
 - Set up GitHub project board
 - Remove GitHub Actions from source repositories for security
 
@@ -18,7 +20,7 @@ A Python package to clone a repo and automatically prepare it for [Cyfrin](https
 
 1. Install requirements:
 ```bash
-git clone https://github.com/Cyfrin/audit-repo-cloner
+git clone https://github.com/0xSimao-audits/audit-repo-cloner
 cd audit-repo-cloner
 python3.11 -m venv venv
 source venv/bin/activate
@@ -78,3 +80,7 @@ pip install -r requirements.txt
 pre-commit install
 pre-commit run --all-files
 ```
+
+## License
+
+Licensed under the [MIT License](LICENSE). This project is a fork of [Cyfrin/audit-repo-cloner](https://github.com/Cyfrin/audit-repo-cloner); the original copyright notice is retained in the LICENSE file as required by the MIT License.

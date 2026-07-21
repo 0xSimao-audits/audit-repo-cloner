@@ -52,7 +52,7 @@ def create_audit_repo(
     github_token: str = None,
     organization: str = None,
 ):
-    """This function clones multiple repositories and prepares them for a Cyfrin audit using the provided configuration.
+    """This function clones multiple repositories and prepares them for a 0xSimao audit using the provided configuration.
 
     Args:
         config_file (str): Path to the configuration file containing repository details.
@@ -404,11 +404,11 @@ def clone_source_repo_as_subtree(repo: Repository, temp_dir: str, github_token: 
             log.info("Continuing anyway...")
 
         # Create tag in the main repo pointing to this commit
-        tag_name = f"{source_repo_name}-cyfrin-audit"
+        tag_name = f"{source_repo_name}-0xsimao-audit"
         try:
             tag = repo.create_git_tag(
                 tag=tag_name,
-                message=f"Cyfrin audit tag for {source_repo_name}",
+                message=f"0xSimao audit tag for {source_repo_name}",
                 object=repo.get_commits()[0].sha,
                 type="commit",
             )
@@ -558,7 +558,7 @@ def prompt_for_details(source_url: str, target_repo_name: str, commit_hash: str,
         prompt_counter = 1
 
         if not source_url:
-            source_url = input(f"Hello! This script will clone the source repository and prepare it for a Cyfrin audit. Please enter the following details:\n\n{prompt_counter}) Source repo url: ")
+            source_url = input(f"Hello! This script will clone the source repository and prepare it for a 0xSimao audit. Please enter the following details:\n\n{prompt_counter}) Source repo url: ")
             prompt_counter += 1
         if not target_repo_name:
             target_repo_name = input(f"\n{prompt_counter}) Target repo name (leave blank to use source repo name): ")
@@ -589,8 +589,8 @@ def create_audit_tag(repo, repo_path, commit_hash) -> Repository:
 
     try:
         tag = repo.create_git_tag(
-            tag="cyfrin-audit",
-            message="Cyfrin audit tag",
+            tag="0xsimao-audit",
+            message="0xSimao audit tag",
             object=commit_hash,
             type="commit",
         )
@@ -603,10 +603,10 @@ def create_audit_tag(repo, repo_path, commit_hash) -> Repository:
 
         try:
             # Create the tag at the specific commit hash
-            subprocess.run(["git", "-C", repo_path, "tag", "cyfrin-audit", commit_hash])
+            subprocess.run(["git", "-C", repo_path, "tag", "0xsimao-audit", commit_hash])
 
             # Push the tag to the remote repository
-            subprocess.run(["git", "-C", repo_path, "push", "origin", "cyfrin-audit"])
+            subprocess.run(["git", "-C", repo_path, "push", "origin", "0xsimao-audit"])
         except GithubException as e:
             log.error(f"Error creating audit tag manually: {e}")
             repo.delete()

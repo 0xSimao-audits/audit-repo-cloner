@@ -2,7 +2,7 @@
 
 1. Clone and set up the repository:
 ```bash
-git clone https://github.com/Cyfrin/audit-repo-cloner
+git clone https://github.com/0xSimao-audits/audit-repo-cloner
 cd audit-repo-cloner
 python3 -m venv venv
 source venv/bin/activate
