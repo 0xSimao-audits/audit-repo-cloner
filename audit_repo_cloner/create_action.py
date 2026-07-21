@@ -13,6 +13,10 @@ on:
 
 jobs:
   generate-report:
+    # The called workflow declares 'permissions: read-all' and a called workflow
+    # cannot request more than the caller grants. Without this, repos whose default
+    # workflow token permissions are read-only fail with startup_failure.
+    permissions: read-all
     uses: ./.github/workflows/main.yml
     with:
       generator-path: {generator_path}
