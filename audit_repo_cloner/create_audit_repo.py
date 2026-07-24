@@ -25,6 +25,10 @@ log.getLogger("gql.transport.requests").setLevel(log.WARNING)
 # Globals are shit. We should refactor again in the future...
 REPORT_BRANCH_NAME = "report"
 MAIN_BRANCH_NAME = "main"
+REVIEW_BASE_BRANCH_NAME = "review-base"
+DEFAULT_SCOPE = ["src/**/*.sol"]
+# Path segments that are dependencies / build output, never audit scope.
+DEFAULT_SCOPE_EXCLUDE = ["lib", "node_modules", "dependencies", "out", "cache", "artifacts", ".git"]
 SUBTREE_URL = "https://github.com/0xSimao-audits/report-generator-template.git"
 SUBTREE_NAME = "report-generator-template"
 SUBTREE_PATH_PREFIX = "0xSimao-report"
@@ -74,6 +78,8 @@ def create_audit_repo(
     project_title = config.get("projectTitle")
     auditors = config.get("auditors")
     repositories = config.get("repositories", [])
+    scope = config.get("scope", DEFAULT_SCOPE)
+    scope_exclude = config.get("scopeExclude", DEFAULT_SCOPE_EXCLUDE)
 
     if not repositories:
         raise click.UsageError("No repositories specified in the config file.")
@@ -110,6 +116,10 @@ def create_audit_repo(
 
         # Merge all submodules after all subtrees are added
         merge_submodules(repo_path)
+
+        # Open one review PR per in-scope file (whole-file, line-by-line commentable)
+        if scope:
+            repo = open_pr_per_file(repo, repo_path, scope, scope_exclude)
 
         repo = add_issue_template_to_repo(repo)
         repo = replace_labels_in_repo(repo)
@@ -683,6 +693,96 @@ def create_report_branch(repo, commit_hash) -> Repository:
             log.error(f"Error creating branch: {e}")
             repo.delete()
             exit()
+    return repo
+
+
+def resolve_scope_files(repo_path: str, scope: List[str], exclude: List[str] = None) -> List[str]:
+    """Resolve the configured scope glob patterns to a sorted, de-duplicated list of
+    repo-relative file paths.
+
+    Patterns are matched relative to the repo root. To be forgiving about source repos
+    that were pulled in under a `subFolder` prefix (e.g. `main/src/Foo.sol`), each pattern
+    that does not already start with `**/` is also matched with a `**/` prefix.
+
+    Any file whose path contains one of the `exclude` directory names as a segment
+    (e.g. `lib`, `node_modules`, build output) is dropped, so dependencies pulled in
+    under a `src/` directory are not treated as audit scope.
+    """
+    exclude = DEFAULT_SCOPE_EXCLUDE if exclude is None else exclude
+    exclude_set = {e.strip("/") for e in exclude}
+
+    matches = set()
+    for pattern in scope:
+        patterns = [pattern]
+        if not pattern.startswith("**/"):
+            patterns.append(f"**/{pattern}")
+        for p in patterns:
+            for abs_path in glob.glob(os.path.join(repo_path, p), recursive=True):
+                if os.path.isfile(abs_path):
+                    rel = os.path.relpath(abs_path, repo_path).replace("\\", "/")
+                    # Drop dependency / build-output / tooling directories
+                    if exclude_set.intersection(rel.split("/")[:-1]):
+                        continue
+                    matches.add(rel)
+    return sorted(matches)
+
+
+def open_pr_per_file(repo: Repository, repo_path: str, scope: List[str], exclude: List[str] = None) -> Repository:
+    """Create one pull request per in-scope file for line-by-line review.
+
+    A `review-base` branch is created from `main` with every in-scope file removed.
+    Each in-scope file then gets its own branch (`review/<path>`) that adds the file
+    back, and a PR is opened against `review-base`. The PR diff therefore shows the
+    entire file as additions, so every line is commentable.
+    """
+    files = resolve_scope_files(repo_path, scope, exclude)
+    if not files:
+        log.warning(f"No files matched the configured scope {scope}. Skipping per-file review PRs.")
+        return repo
+
+    log.info(f"Opening {len(files)} review PR(s) for scope {scope}...")
+
+    def git(*args, check: bool = True):
+        result = subprocess.run(["git", *args], cwd=repo_path, capture_output=True, text=True, check=False)
+        if check and result.returncode != 0:
+            raise RuntimeError(f"git {' '.join(args)} failed: {result.stderr.strip()}")
+        return result
+
+    # Build the empty review base: main minus every in-scope file
+    git("checkout", MAIN_BRANCH_NAME)
+    git("checkout", "-B", REVIEW_BASE_BRANCH_NAME)
+    for f in files:
+        git("rm", "--quiet", "--", f)
+    git("commit", "-m", "chore: review base (in-scope files removed)")
+    push = git("push", "-u", "origin", REVIEW_BASE_BRANCH_NAME, check=False)
+    if push.returncode != 0:
+        log.error(f"Failed to push {REVIEW_BASE_BRANCH_NAME}: {push.stderr.strip()}. Skipping per-file review PRs.")
+        return repo
+
+    for f in files:
+        branch_name = f"review/{f}"
+        try:
+            git("checkout", REVIEW_BASE_BRANCH_NAME)
+            git("checkout", "-B", branch_name)
+            git("checkout", MAIN_BRANCH_NAME, "--", f)
+            git("add", "--", f)
+            git("commit", "-m", f"review: {f}")
+            push = git("push", "-u", "origin", branch_name, check=False)
+            if push.returncode != 0:
+                log.error(f"Failed to push {branch_name}: {push.stderr.strip()}. Skipping PR for {f}.")
+                continue
+            repo.create_pull(
+                title=f,
+                body=f"Line-by-line review of `{f}`.",
+                base=REVIEW_BASE_BRANCH_NAME,
+                head=branch_name,
+            )
+        except (RuntimeError, GithubException) as e:
+            log.error(f"Error creating review PR for {f}: {e}")
+            continue
+
+    # Leave the local checkout back on main for any subsequent steps
+    git("checkout", MAIN_BRANCH_NAME, check=False)
     return repo
 
 

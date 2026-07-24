@@ -2,6 +2,9 @@
   "targetRepoName": "audit-2024-05-myproject",
   "projectTitle": "[Audit] My Project (2024-05)",
   "auditors": "auditor1 auditor2 auditor3",
+  "scope": [
+    "src/**/*.sol"
+  ],
   "repositories": [
     {
       "sourceUrl": "https://github.com/username/main-repo",
